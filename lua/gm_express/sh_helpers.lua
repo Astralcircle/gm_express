@@ -143,7 +143,7 @@ end
 
 function express.HandleReceivedData( body, id, cb )
     if string.StartsWith( body, "<raw>" ) then
-        print( "Express: Returning raw data for ID '" .. id .. "'." )
+        -- print( "Express: Returning raw data for ID '" .. id .. "'." )
         body = string.sub( body, 6 )
         local hash = util.SHA1( body )
         return cb( body, hash )
@@ -171,7 +171,7 @@ function express:Get( id, cb )
         express._checkResponseCode( code )
 
         if attempts > 0 then
-            print( "Express:Get() succeeded after " .. attempts .. " attempts" )
+            -- print( "Express:Get() succeeded after " .. attempts .. " attempts" )
         end
 
         -- We had a successful download, so reset the attempts
@@ -201,7 +201,7 @@ function express:Get( id, cb )
 
         -- Unsuccessful HTTP requests might succeed on a retry
         if reason == "unsuccessful" then
-            print( "Express: Failed to download file '" .. url .. "': HTTP request failed. Retrying." )
+            -- print( "Express: Failed to download file '" .. url .. "': HTTP request failed. Retrying." )
             attempts = attempts + 1
             makeRequest()
         else
@@ -215,7 +215,7 @@ function express:Get( id, cb )
             -- FIXME: This has the nice side effect of printing an engine warning in console!
             headers.Range = string.format( "bytes=%d-%d, 0-1", rangeStart, rangeEnd )
         end
-        print( "Express: Downloading chunk " .. rangeStart .. " to " .. rangeEnd .. " of " .. id )
+        -- print( "Express: Downloading chunk " .. rangeStart .. " to " .. rangeEnd .. " of " .. id )
 
         express.HTTP( {
             method = "GET",
@@ -246,7 +246,7 @@ function express.processSendData( data )
     local processed = ""
 
     if istable( data ) then
-        print( "Express: Sending table data." )
+        -- print( "Express: Sending table data." )
         if table.Count( data ) == 0 then
             error( "Express: Tried to send empty data!" )
         end
@@ -262,7 +262,7 @@ function express.processSendData( data )
         processed = serialized
 
     elseif isstring( data ) then
-        print( "Express: Sending raw data." )
+        -- print( "Express: Sending raw data." )
         if #data == 0 then
             error( "Express: Tried to send empty data!" )
         end
@@ -304,7 +304,7 @@ function express:_put( struct, cb )
             if now <= ( cachedAt + self._maxCacheTime ) then
                 local cachedSize = cached.size
                 local niceSize = string.NiceSize( cachedSize )
-                print( "Express: Using cached ID '" .. cached.id .. "' for hash '" .. hash .. "' (Saved you " .. niceSize .. "!)" )
+                -- print( "Express: Using cached ID '" .. cached.id .. "' for hash '" .. hash .. "' (Saved you " .. niceSize .. "!)" )
 
                 -- Force the callback to run asynchronously for consistency
                 timer.Simple( 0, function()
@@ -362,7 +362,7 @@ function express:_putCallback( message, plys, onProof )
         end
 
         net.Start( "express" )
-        print( "Express: Sending message '" .. message .. "' to: ", plys )
+        -- print( "Express: Sending message '" .. message .. "' to: ", plys )
         net.WriteString( message )
         net.WriteString( id )
         net.WriteBool( onProof ~= nil )
@@ -378,7 +378,7 @@ end
 
 function express:_putSmall( struct, message, plys, onProof )
     net.Start( "express_small" )
-    print( "Express: Sending NetStream message '" .. message .. "' to: ", plys )
+    -- print( "Express: Sending NetStream message '" .. message .. "' to: ", plys )
     net.WriteString( message )
     net.WriteUInt( struct.size, 27 )
     net.WriteBool( onProof ~= nil )
@@ -411,7 +411,7 @@ function express:_send( message, data, plys, onProof )
     local size = processed.size
 
     if size < express.minSize:GetFloat() then
-        print( "Express: Message ('" .. message .. "') is too small to send with express. Falling back to NetStream:", string.NiceSize( size ) )
+        -- print( "Express: Message ('" .. message .. "') is too small to send with express. Falling back to NetStream:", string.NiceSize( size ) )
         self:_putSmall( processed, message, plys, onProof )
         return false
     end

@@ -22,9 +22,7 @@ function express.Seed( data, cb )
     local size = processed.size
 
     if size < express.minSize:GetFloat() then
-        print( "Express: Message is too small to seed with express (It will use NetStream)", string.NiceSize( size ) )
-        debug.Trace()
-
+        -- print( "Express: Message is too small to seed with express (It will use NetStream)", string.NiceSize( size ) )
         return
     end
 
@@ -32,7 +30,7 @@ function express.Seed( data, cb )
         error( "Express: Data too large (" .. size .. " bytes)" )
     end
 
-    print( "Express: Seeding data with Express", string.NiceSize( size ) )
+    -- print( "Express: Seeding data with Express", string.NiceSize( size ) )
     express:_put( processed, cb )
 end
 
@@ -49,8 +47,8 @@ function express:GetSize( id, cb )
 
         local size = sizeHolder.size
         if not size then
-            print( "Express: Failed to get size for ID '" .. id .. "'.", code )
-            print( body )
+            -- print( "Express: Failed to get size for ID '" .. id .. "'.", code )
+            -- print( body )
         end
         assert( size, "Express: No size data for: '" .. id .. "'" )
 
@@ -139,7 +137,7 @@ function express:SetExpected( hash, cb, plys )
 
     for _, ply in ipairs( plys ) do
         local key = ply:SteamID64() .. "-" .. hash
-        print( "Setting expected proof for", key )
+        -- print( "Setting expected proof for", key )
         self._awaitingProof[key] = cb
     end
 end
