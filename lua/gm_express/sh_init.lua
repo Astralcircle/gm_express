@@ -50,16 +50,11 @@ function express:Put( data, cb )
         cb( response.id )
     end
 
-    local failed = function( reason )
-        error( "Express: Failed to upload data: " .. reason )
-    end
-
     self.HTTP( {
         method = "POST",
         url = self:makeAccessURL( "write" ),
         body = data,
         success = success,
-        failed = failed,
         headers = {
             ["Accept"] = "application/json"
         },

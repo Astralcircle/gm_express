@@ -100,47 +100,6 @@ function express:SetAccess( access, clientAccess )
     self._waitingForAccess = {}
 end
 
-
--- Checks the version of the API and alerts of a mismatch --
-function express.CheckRevision()
-    local suffix = " on version check! (Is express up to date?)"
-    local err = function( msg )
-        msg = "'" .. msg .. "'"
-        return "Express: " .. msg .. suffix
-    end
-
-    local url = express:makeBaseURL() .. "/revision"
-    local success = function( code, body )
-        assert( code >= 200 and code < 300, err( "Invalid response code (" .. code .. ")" ) )
-
-        local dataHolder = util.JSONToTable( body )
-        assert( dataHolder, err( "Invalid JSON response" ) )
-
-        local revision = dataHolder.revision
-        assert( revision, err( "Invalid JSON response" ) )
-
-        local current = express.revision
-        if revision ~= current then
-            error( "Express: Revision mismatch! Expected " .. current .. ", got " .. revision .. " (Update the addon?)" )
-        end
-    end
-
-    local madeRequest = express.HTTP( {
-        url = url,
-        method = "GET",
-        success = success,
-        failed = function( message )
-            error( err( message ) )
-        end,
-        headers = express.jsonHeaders,
-        timeout = express:_getTimeout()
-    } )
-
-    if not madeRequest then
-        error( err( "HTTP request failed" ) )
-    end
-end
-
 function express.HandleReceivedData( body, id, cb )
     if string.StartsWith( body, "<raw>" ) then
         -- print( "Express: Returning raw data for ID '" .. id .. "'." )
@@ -204,8 +163,6 @@ function express:Get( id, cb )
             -- print( "Express: Failed to download file '" .. url .. "': HTTP request failed. Retrying." )
             attempts = attempts + 1
             makeRequest()
-        else
-            error( "Express: Failed to download file '" .. url .. "': " .. reason .. "\n" )
         end
     end
 
@@ -465,23 +422,17 @@ cvars.AddChangeCallback( "express_domain", function()
     express._putCache = {}
 
     if SERVER then express:Register() end
-
-    express:CheckRevision()
 end, "domain_check" )
 
 -- Both client and server should check the version on startup so that errors are caught early --
 cvars.AddChangeCallback( "express_domain_cl", function( _, _, new )
     if CLIENT then express._putCache = {} end
     if new == "" then return end
-
-    express:CheckRevision()
 end, "domain_check" )
-
 
 hook.Add( "ExpressLoaded", "Express_HTTPInit", function()
     hook.Add( "Tick", "Express_RevisionCheck", function()
         hook.Remove( "Tick", "Express_RevisionCheck" )
         if SERVER then express:Register() end
-        express:CheckRevision()
     end )
 end )
