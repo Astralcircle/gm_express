@@ -147,7 +147,7 @@ function express.OnSmallMessage( _, ply )
 
         net.ReadStream( ply, function( body )
             -- FIXME: Still calls the onProof callbacak even if we exit early
-            if shouldHalt then return end
+            if shouldHalt or not body then return end
 
             express.HandleReceivedData( body, "", function( data )
                 express:Call( message, ply, data )
