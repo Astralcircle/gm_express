@@ -29,10 +29,6 @@ express.useRanges = CreateConVar(
     "express_use_ranges", tostring( 1 ), FCVAR_ARCHIVE + FCVAR_REPLICATED,
     "Whether or not to request data in Ranges. (Improves stability for bad internets, might avoid some bugs, could slow things down)", 0, 1
 )
-express.minSize = CreateConVar(
-    "express_min_size", tostring( 64 * 3 * 1024 ), FCVAR_ARCHIVE + FCVAR_REPLICATED,
-    "The minimum size (in bytes) that will send via express. Anything smaller than this will send with NetStream"
-)
 
 -- Useful for self-hosting if you need to set express_domain to localhost
 -- and direct clients to a global IP/domain to hit the same service
@@ -332,18 +328,6 @@ function express:_putCallback( message, plys, onProof )
     end
 end
 
-
-function express:_putSmall( struct, message, plys, onProof )
-    net.Start( "express_small" )
-    -- print( "Express: Sending NetStream message '" .. message .. "' to: ", plys )
-    net.WriteString( message )
-    net.WriteUInt( struct.size, 27 )
-    net.WriteBool( onProof ~= nil )
-    net.WriteStream( struct.data, onProof, true )
-    express.shSend( plys )
-end
-
-
 -- Calls the _put function with a contextual callback --
 function express:_send( message, data, plys, onProof )
     if not isstring( message ) then
@@ -366,12 +350,6 @@ function express:_send( message, data, plys, onProof )
 
     local processed = express.processSendData( data )
     local size = processed.size
-
-    if size < express.minSize:GetFloat() then
-        -- print( "Express: Message ('" .. message .. "') is too small to send with express. Falling back to NetStream:", string.NiceSize( size ) )
-        self:_putSmall( processed, message, plys, onProof )
-        return false
-    end
 
     if size > express._maxDataSize then
         error( "Express: Data too large (" .. size .. " bytes)" )

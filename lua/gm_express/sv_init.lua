@@ -21,11 +21,6 @@ function express.Seed( data, cb )
     local processed = express.processSendData( data )
     local size = processed.size
 
-    if size < express.minSize:GetFloat() then
-        -- print( "Express: Message is too small to seed with express (It will use NetStream)", string.NiceSize( size ) )
-        return
-    end
-
     if size > express._maxDataSize then
         error( "Express: Data too large (" .. size .. " bytes)" )
     end

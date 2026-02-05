@@ -4,7 +4,6 @@ require( "sfs" )
 if SERVER then
     util.AddNetworkString( "express" )
     util.AddNetworkString( "express_proof" )
-    util.AddNetworkString( "express_small" )
     util.AddNetworkString( "express_receivers_made" )
 end
 
@@ -125,44 +124,6 @@ function express.OnMessage( _, ply )
     makeRequest()
 end
 
--- Handles a net message with data sent via NetStream
-function express.OnSmallMessage( _, ply )
-    local message = net.ReadString()
-
-    local hasReceiver = express:_getReceiver( message )
-
-    local id = "netstream:" .. message
-    local size = net.ReadUInt( 27 )
-    local needsProof = net.ReadBool()
-
-    if hasReceiver then
-        local shouldHalt = false
-
-        if express:_getPreDlReceiver( message ) then
-            local check = express:CallPreDownload( message, ply, id, size, needsProof )
-            if check == false then
-                shouldHalt = true
-            end
-        end
-
-        net.ReadStream( ply, function( body )
-            -- FIXME: Still calls the onProof callbacak even if we exit early
-            if shouldHalt or not body then return end
-
-            express.HandleReceivedData( body, "", function( data )
-                express:Call( message, ply, data )
-            end )
-        end )
-    else
-        -- We have to read it even if we don't want it, otherwise it stays in the sender's WriteStreams
-        -- FIXME: This still calls the onProof callback if it's provided
-        net.ReadStream( ply, function()
-            error( "Express: Received a message that has no listener! (" .. message .. ")" )
-        end )
-    end
-end
-
-
 -- Handles a net message containing a proof of data download --
 function express.OnProof( _, ply )
     -- Server prefixes the hash with the player's Steam ID
@@ -185,7 +146,6 @@ end
 
 net.Receive( "express", express.OnMessage )
 net.Receive( "express_proof", express.OnProof )
-net.Receive( "express_small", express.OnSmallMessage )
 
 include( "sh_helpers.lua" )
 
