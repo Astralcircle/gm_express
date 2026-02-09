@@ -135,7 +135,9 @@ function express:Get( id, cb )
 
         -- If Range headers are supported on the server
         if code == 206 then
-            local _, _, fullSize = self.parseContentRange( responseHeaders["Content-Range"] )
+            -- Check if range is lowercased for reqwest support
+            local _, _, fullSize = self.parseContentRange( responseHeaders["Content-Range"] or responseHeaders["content-range"] )
+
             if #fullBody == fullSize then
                 return express.HandleReceivedData( fullBody, id, cb )
             end
