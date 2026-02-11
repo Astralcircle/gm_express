@@ -35,7 +35,9 @@ function express:GetSize( id, cb )
     local url = self:makeAccessURL( "size", id )
 
     local success = function( code, body )
-        express._checkResponseCode( code )
+        if not express._checkResponseCode( code ) then
+            return
+        end
 
         local sizeHolder = util.JSONToTable( body )
         assert( sizeHolder, "Express: Invalid JSON when parsing: '" .. id .. "'" )
@@ -93,7 +95,9 @@ function express.Register()
     end
 
     local success = function( code, body )
-        express._checkResponseCode( code )
+        if not express._checkResponseCode( code ) then
+            return
+        end
 
         local response = util.JSONToTable( body )
         assert( response, "Invalid JSON" )

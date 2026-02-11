@@ -40,7 +40,9 @@ end
 -- Given prepared data, sends it to the API --
 function express:Put( data, cb )
     local success = function( code, body )
-        express._checkResponseCode( code )
+        if not express._checkResponseCode( code ) then
+            return
+        end
 
         local response = util.JSONToTable( body )
         assert( response, "Invalid JSON" )

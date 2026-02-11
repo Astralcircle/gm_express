@@ -123,7 +123,9 @@ function express:Get( id, cb )
     local function success( code, body, responseHeaders )
         -- print( "Express: GET " .. url .. " : " .. tostring( code ), headers.Range, "Attempts: " .. attempts )
 
-        express._checkResponseCode( code )
+        if not express._checkResponseCode( code ) then
+            return
+        end
 
         if attempts > 0 then
             -- print( "Express:Get() succeeded after " .. attempts .. " attempts" )
@@ -390,10 +392,7 @@ end
 
 -- Ensures that the given HTTP response code indicates a succcessful request --
 function express._checkResponseCode( code )
-    local isOk = isnumber( code ) and code >= 200 and code < 300
-    if isOk then return end
-
-    error( "Express: Invalid response code (" .. tostring( code ) .. ")" )
+    return code >= 200 and code < 300
 end
 
 
