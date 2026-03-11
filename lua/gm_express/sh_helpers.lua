@@ -104,7 +104,12 @@ function express.HandleReceivedData( body, id, cb )
         return cb( body, hash )
     else
         local hash = util.SHA1( body )
-        local decodedData = sfs.decode( body )
+        local decodedData, err = sfs.decode( body )
+
+        if not decodedData then
+            error(string.format("Express: Received data is nil! Error: %s, Body: %s", err, body))
+        end
+
         return cb( decodedData, hash )
     end
 end
