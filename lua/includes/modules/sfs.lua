@@ -1346,5 +1346,5 @@ _G.sfs = {
     end,
 
     chars = chars,
-    VERSION = "5.0.0"
+    VERSION = "7.0.7"
 }
