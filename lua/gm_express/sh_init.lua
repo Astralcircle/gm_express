@@ -102,6 +102,7 @@ function express.OnMessage( _, ply )
         end
 
         express:_get( id, function( data, hash )
+            if SERVER and not ply:IsValid() then return end
             express:Call( message, ply, data )
 
             if not needsProof then return end
