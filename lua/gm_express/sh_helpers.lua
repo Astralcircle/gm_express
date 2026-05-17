@@ -2,7 +2,7 @@ AddCSLuaFile()
 express.version = 1
 express.revision = 1
 express._putCache = {}
-express._maxCacheTime = (24 - 1) * 60 * 60
+express._maxCacheTime = 60 * 5
 express._waitingForAccess = {}
 
 express.domain = CreateConVar(
