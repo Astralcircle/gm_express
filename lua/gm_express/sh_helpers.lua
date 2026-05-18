@@ -415,6 +415,19 @@ cvars.AddChangeCallback( "express_domain_cl", function( _, _, new )
 end, "domain_check" )
 
 hook.Add( "ExpressLoaded", "Express_HTTPInit", function()
+    timer.Create( "Express_CacheCleaner", 60 * 5, 0, function()
+        local now = os.time()
+        local cache = express._putCache
+
+        for hash, entry in pairs( cache ) do
+            if entry.complete then
+                if now > ( entry.cachedAt + express._maxCacheTime ) then
+                    cache[hash] = nil
+                end
+            end
+        end
+    end )
+
     hook.Add( "Tick", "Express_RevisionCheck", function()
         hook.Remove( "Tick", "Express_RevisionCheck" )
         if SERVER then express:Register() end
