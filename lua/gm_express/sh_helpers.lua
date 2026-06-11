@@ -19,8 +19,19 @@ if SERVER then
     )
 
     -- Attempts to re-register with the new domain, and then verifies its version --
-    cvars.AddChangeCallback( "express_domain", function() express.Register() end )
-    cvars.AddChangeCallback( "express_domain_cl", function() express.Register() end )
+    cvars.AddChangeCallback( "express_domain", function()
+        express._putCache = {}
+        express.Register()
+    end )
+
+    cvars.AddChangeCallback( "express_domain_cl", function()
+        if express.access then
+            net.Start( "express_access" )
+            net.WriteString( express._clientAccess )
+            net.WriteString( express:getDomain( true ) )
+            net.Broadcast()
+        end
+    end )
 end
 
 express.downloadChunkSize = CreateConVar(
@@ -98,6 +109,11 @@ function express:SetAccess( access, clientAccess, clientDomain )
     self._clientAccess = clientAccess
 
     if CLIENT then
+        -- Clear cache if cl domain has been changed
+        if self._clientDomain then
+            self._putCache = {}
+        end
+
         self._clientDomain = clientDomain
     end
 
