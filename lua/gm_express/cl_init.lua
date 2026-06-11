@@ -3,7 +3,7 @@ express._canSendReceiverMade = false
 
 
 net.Receive( "express_access", function()
-    express:SetAccess( net.ReadString() )
+    express:SetAccess( net.ReadString(), nil, net.ReadString() )
     express:_sendReceiversMadeQueue()
 end )
 

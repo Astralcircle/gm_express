@@ -104,12 +104,14 @@ function express.Register()
         assert( response.server, "Could not get Server Access Token from API" )
         assert( response.client, "Could not get Client Access Token from API" )
 
-        express:SetAccess( response.server, response.client )
+        local client_domain = express:getDomain( true )
+        express:SetAccess( response.server, response.client, client_domain )
 
         if player.GetCount() == 0 then return end
 
         net.Start( "express_access" )
         net.WriteString( express._clientAccess )
+        net.WriteString( client_domain )
         net.Broadcast()
     end
 
@@ -160,6 +162,7 @@ function express._onPlayerLoaded( ply )
     local function sendAccess()
         net.Start( "express_access" )
         net.WriteString( express._clientAccess )
+        net.WriteString( express:getDomain( true ) )
         net.Send( ply )
     end
 

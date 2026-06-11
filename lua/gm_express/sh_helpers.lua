@@ -5,10 +5,24 @@ express._putCache = {}
 express._maxCacheTime = 60 * 5
 express._waitingForAccess = {}
 
-express.domain = CreateConVar(
-    "express_domain", "gmod.express", FCVAR_ARCHIVE + FCVAR_REPLICATED,
-    "The domain of the Express server"
-)
+if SERVER then
+    express.domain = CreateConVar(
+        "express_domain", "gmod.express", FCVAR_ARCHIVE,
+        "The domain of the Express server"
+    )
+
+    -- Useful for self-hosting if you need to set express_domain to localhost
+    -- and direct clients to a global IP/domain to hit the same service
+    express.domain_cl = CreateConVar(
+        "express_domain_cl", "", FCVAR_ARCHIVE,
+        "The client-specific domain of the Express server. If empty, express_domain will be used."
+    )
+
+    -- Attempts to re-register with the new domain, and then verifies its version --
+    cvars.AddChangeCallback( "express_domain", function() express.Register() end )
+    cvars.AddChangeCallback( "express_domain_cl", function() express.Register() end )
+end
+
 express.downloadChunkSize = CreateConVar(
     "express_download_chunk_size", tostring( 12 * 1024 * 1024 ), FCVAR_ARCHIVE,
     "The size (in bytes) of each chunk downloaded from the Express server", 1
@@ -30,14 +44,6 @@ express.useRanges = CreateConVar(
     "Whether or not to request data in Ranges. (Improves stability for bad internets, might avoid some bugs, could slow things down)", 0, 1
 )
 
--- Useful for self-hosting if you need to set express_domain to localhost
--- and direct clients to a global IP/domain to hit the same service
-express.domain_cl = CreateConVar(
-    "express_domain_cl", "", FCVAR_ARCHIVE + FCVAR_REPLICATED,
-    "The client-specific domain of the Express server. If empty, express_domain will be used."
-)
-
-
 -- Runs the correct net Send function based on the realm --
 function express.shSend( target )
     if CLIENT then
@@ -49,14 +55,17 @@ end
 
 
 -- Returns the correct domain based on the realm and convars --
-function express:getDomain()
-    local domain = self.domain:GetString()
-    if SERVER then return domain end
+function express:getDomain( for_client )
+    if SERVER then
+        if for_client then
+            local domain = self.domain_cl:GetString()
+            if domain ~= "" then return domain end
+        end
 
-    local clDomain = self.domain_cl:GetString()
-    if clDomain ~= "" then return clDomain end
+        return self.domain:GetString()
+    end
 
-    return domain
+    return self._clientDomain
 end
 
 
@@ -84,9 +93,13 @@ end
 
 
 -- Sets the access token and runs requests that were waiting --
-function express:SetAccess( access, clientAccess )
+function express:SetAccess( access, clientAccess, clientDomain )
     self.access = access
     self._clientAccess = clientAccess
+
+    if CLIENT then
+        self._clientDomain = clientDomain
+    end
 
     local waiting = self._waitingForAccess
     for _, callback in ipairs( waiting ) do
@@ -389,20 +402,6 @@ end
 function express._checkResponseCode( code )
     return code >= 200 and code < 300
 end
-
-
--- Attempts to re-register with the new domain, and then verifies its version --
-cvars.AddChangeCallback( "express_domain", function()
-    express._putCache = {}
-
-    if SERVER then express:Register() end
-end, "domain_check" )
-
--- Both client and server should check the version on startup so that errors are caught early --
-cvars.AddChangeCallback( "express_domain_cl", function( _, _, new )
-    if CLIENT then express._putCache = {} end
-    if new == "" then return end
-end, "domain_check" )
 
 hook.Add( "ExpressLoaded", "Express_HTTPInit", function()
     timer.Create( "Express_CacheCleaner", 60 * 5, 0, function()
