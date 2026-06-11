@@ -209,10 +209,6 @@ function express.processSendData( data )
 
     if istable( data ) then
         -- print( "Express: Sending table data." )
-        if table.Count( data ) == 0 then
-            error( "Express: Tried to send empty data!" )
-        end
-
         local serialized, err = sfs.encode( data )
         if not serialized then
             err = err or "unknown error"
@@ -222,15 +218,9 @@ function express.processSendData( data )
         end
 
         processed = serialized
-
     elseif isstring( data ) then
         -- print( "Express: Sending raw data." )
-        if #data == 0 then
-            error( "Express: Tried to send empty data!" )
-        end
-
         processed = "<raw>" .. data
-
     else
         error( "Express: Invalid data type '" .. type( data ) .. "'! (expected string or table)" )
     end
