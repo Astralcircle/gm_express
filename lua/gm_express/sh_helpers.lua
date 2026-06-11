@@ -25,7 +25,7 @@ if SERVER then
     end )
 
     cvars.AddChangeCallback( "express_domain_cl", function()
-        if express.access then
+        if express._clientAccess then
             net.Start( "express_access" )
             net.WriteString( express._clientAccess )
             net.WriteString( express:getDomain( true ) )
