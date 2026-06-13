@@ -89,10 +89,7 @@ function express.Register()
     timer.Create( "Express_Register", oneDay, 0, express.Register )
 
     local url = express:makeBaseURL() .. "/register"
-
-    local failed = function( reason )
-        error( "Express: Failed to register with the API. This is bad! (reason " .. reason .. ")" )
-    end
+    local makeRequest
 
     local success = function( code, body )
         if not express._checkResponseCode( code ) then
@@ -115,14 +112,27 @@ function express.Register()
         net.Broadcast()
     end
 
-    express.HTTP( {
-        url = url,
-        method = "GET",
-        success = success,
-        failed = failed,
-        headers = express.jsonHeaders,
-        timeout = express:_getTimeout()
-    } )
+    local failed = function( reason )
+        -- Unsuccessful HTTP requests might succeed on a retry
+        if reason == "unsuccessful" then
+            makeRequest()
+        else
+            error( "Express: Failed to register with the API. This is bad! (" .. reason .. ")" )
+        end
+    end
+
+    makeRequest = function()
+        express.HTTP( {
+            url = url,
+            method = "GET",
+            success = success,
+            failed = failed,
+            headers = express.jsonHeaders,
+            timeout = express:_getTimeout()
+        } )
+    end
+
+    makeRequest()
 end
 
 
