@@ -420,7 +420,7 @@ function express._checkResponseCode( code )
 end
 
 hook.Add( "ExpressLoaded", "Express_HTTPInit", function()
-    timer.Create( "Express_CacheCleaner", 60 * 5, 0, function()
+    timer.Create( "Express_CacheCleaner", express._maxCacheTime, 0, function()
         local now = os.time()
         local cache = express._putCache
 
